@@ -8,11 +8,11 @@ const youtubeRoutes = require('./routes');
 const { getCacheStats } = require('./cache');
 
 // ── Startup env validation ────────────────────────────────────────────────
-// Warn loudly if CORS_ORIGIN is not set — wildcard is insecure in production.
+// Warn loudly if CORS_ORIGIN is not set — restrictive default is used.
 if (!process.env.CORS_ORIGIN) {
   console.warn(
     '[server] WARNING: CORS_ORIGIN env variable is not set. ' +
-    'Defaulting to wildcard (*). Set CORS_ORIGIN to a specific origin in production.'
+    'Defaulting to CORS disabled (origin: false). Set CORS_ORIGIN to a specific origin in production.'
   );
 }
 
@@ -23,11 +23,18 @@ const PORT = process.env.PORT || 3040;
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 
 // ── CORS ──────────────────────────────────────────────────────────────────
-// REQUIRES HUMAN DECISION: In production, set CORS_ORIGIN to your exact
-// client origin (e.g. "https://app.example.com"). Wildcard is acceptable
-// only for a fully public, unauthenticated API.
+// In production, set CORS_ORIGIN to your exact client origin(s), e.g.
+// "https://app.example.com" or "https://app.example.com,https://admin.example.com".
+// If unset, CORS is disabled by default (origin: false).
+const configuredOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+const corsOrigin = configuredOrigins.length === 0
+  ? false
+  : (configuredOrigins.length === 1 ? configuredOrigins[0] : configuredOrigins);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: corsOrigin,
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Range', 'Accept'],
   exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length'],
