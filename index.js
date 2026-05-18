@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3040;
 
 // ── Security ──────────────────────────────────────────────────────────────
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(helmet({ crossOriginEmbedderPolicy: false }));
 
 // ── CORS ──────────────────────────────────────────────────────────────────
 // REQUIRES HUMAN DECISION: In production, set CORS_ORIGIN to your exact
