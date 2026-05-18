@@ -17,7 +17,10 @@ if (!process.env.CORS_ORIGIN) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3040;
+// HuggingFace Spaces routes external traffic to the port declared as
+// app_port in README.md (7860).  The PORT env var can still override this
+// for local development or other hosting environments.
+const PORT = process.env.PORT || 7860;
 
 // ── Security ──────────────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));

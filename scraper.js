@@ -6,17 +6,17 @@ const ytdl = require('@distube/ytdl-core');
 const { normalizeSearch, normalizeVideo, normalizeStream } = require('./normalize');
 
 // ── yt-dlp discovery ──────────────────────────────────────────────────────
-// Checks a prioritized list of known install locations before falling back
-// to PATH resolution. Windows-specific paths are included for common Python
-// install locations.
+// On Linux (Docker / HuggingFace Spaces) yt-dlp is installed to
+// /usr/local/bin/yt-dlp by the Dockerfile.  On Windows (local dev) it is
+// typically on PATH as yt-dlp or yt-dlp.exe.  We check the explicit Linux
+// path first so the binary is found even if PATH is minimal inside the
+// container, then fall back to PATH resolution for every other environment.
 function findYtDlp() {
   const candidates = [
-    'yt-dlp',
-    'yt-dlp.exe',
-    path.join(process.env.LOCALAPPDATA || '', 'Python', 'pythoncore-3.14-64', 'Scripts', 'yt-dlp.exe'),
-    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python314', 'Scripts', 'yt-dlp.exe'),
-    path.join(process.env.APPDATA || '', 'yt-dlp', 'yt-dlp.exe'),
-    path.join(__dirname, 'bin', 'yt-dlp.exe'),
+    '/usr/local/bin/yt-dlp',          // Docker / Linux (installed by Dockerfile)
+    path.join(__dirname, 'bin', 'yt-dlp'), // local override (any platform)
+    'yt-dlp',                          // PATH resolution (Linux / macOS)
+    'yt-dlp.exe',                      // PATH resolution (Windows)
   ];
   for (const candidate of candidates) {
     try {

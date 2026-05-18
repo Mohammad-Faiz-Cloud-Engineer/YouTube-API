@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Dev tooling
+.vscode
+.idea
+*.bak
+*.orig
+*.swp
+
+# Secrets — never bake into image
+.env
+.env.*
+*.pem
+*.key
+*credentials*.json
+*adminsdk*.json
+
+# Runtime artifacts
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+*.tmp
+*.pid
+.cache/
+coverage/
+.nyc_output/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Docs (not needed at runtime)
+README.md
+CHANGELOG.md
+LICENSE

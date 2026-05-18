@@ -1,6 +1,28 @@
+---
+title: OpenMusic YouTube Server
+emoji: 🎵
+colorFrom: red
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # OpenMusic YouTube Server
 
 A YouTube video metadata and audio streaming API proxy. No API keys, no sign-up, no database. Just a JSON API, a built-in admin panel, and audio playback in the browser.
+
+---
+
+## Deploy on HuggingFace Spaces
+
+1. Create a new Space → select **Docker** as the SDK
+2. Push this repository to the Space
+3. The app will be available at `https://<your-space>.hf.space`
+
+The admin panel is at the root URL. The API base is `/api`.
+
+> `yt-dlp` is installed automatically inside the Docker image — no manual setup needed.
 
 ---
 
@@ -11,9 +33,9 @@ npm install
 npm start
 ```
 
-Opens on `http://localhost:3040`. Hit `/api/health` to check.
+Opens on `http://localhost:7860`. Hit `/api/health` to check.
 
-> **Requires `yt-dlp`** to be installed and available on PATH (or in one of the standard Windows install locations). Used for stream URL extraction.
+> **Requires `yt-dlp`** to be installed and available on PATH.
 >
 > Install: `pip install yt-dlp` or download from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases).
 
@@ -37,7 +59,7 @@ Opens on `http://localhost:3040`. Hit `/api/health` to check.
 ### JavaScript (fetch)
 
 ```javascript
-const BASE = 'http://localhost:3040';
+const BASE = 'https://<your-space>.hf.space'; // or http://localhost:7860
 
 // Search videos
 const searchRes = await fetch(`${BASE}/api/search?q=never gonna give you up`);
@@ -71,7 +93,7 @@ console.log(sugData.suggestions);  // ['never gonna give you up', ...]
 ```python
 import requests
 
-BASE = 'http://localhost:3040'
+BASE = 'https://<your-space>.hf.space'
 
 search = requests.get(f'{BASE}/api/search', params={'q': 'never gonna give you up'}).json()
 print(search['results'][0]['title'])
@@ -86,7 +108,7 @@ print('Stream URL:', stream['stream_url'])
 ### cURL
 
 ```bash
-BASE=http://localhost:3040
+BASE=https://<your-space>.hf.space
 
 # Search
 curl "$BASE/api/search?q=never+gonna+give+you+up"
@@ -220,7 +242,7 @@ Stream URLs are also checked against their CDN expiry timestamp before being ser
 
 ## Built-in Admin Panel
 
-Open `http://localhost:3040` in a browser. There's a dark-themed single-page app with five tabs:
+Open the root URL in a browser. There's a dark-themed single-page app with five tabs:
 
 - **Dashboard** — server status, uptime, and live cache stats
 - **Search** — search YouTube and browse results with thumbnails
@@ -246,11 +268,11 @@ All vanilla JS, zero frameworks.
 
 | Layer | Tool |
 |---|---|
-| Runtime | Node.js >= 18 |
+| Runtime | Node.js 20 |
 | Web framework | Express 4 |
 | HTTP client | Axios |
 | Video info | @distube/ytdl-core |
-| Stream extraction | yt-dlp (external binary) |
+| Stream extraction | yt-dlp (installed in Docker image) |
 | Search | youtube-search-api |
 | Caching | node-cache (in-memory) |
 | Rate limiting | express-rate-limit |
@@ -263,11 +285,9 @@ All vanilla JS, zero frameworks.
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `3040` | Server port |
-| `CORS_ORIGIN` | `*` | Allowed CORS origin. Set to your client URL in production (e.g. `https://app.example.com`) |
-| `NODE_ENV` | — | Set to `production` to switch morgan to combined log format |
-
-If `CORS_ORIGIN` is not set, the server logs a warning at startup and defaults to wildcard. Fine for a local or fully public API; not appropriate if you add authentication.
+| `PORT` | `7860` | Server port (matches HuggingFace `app_port`) |
+| `CORS_ORIGIN` | `*` | Allowed CORS origin. Set to your client URL in production |
+| `NODE_ENV` | `production` | Set automatically in Docker image |
 
 ---
 
