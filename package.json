@@ -1,5 +1,5 @@
 {
-  "name": "bloomee-youtube-server",
+  "name": "openmusic-youtube-server",
   "version": "1.0.0",
   "description": "Production-grade YouTube video streaming server with admin panel",
   "main": "index.js",

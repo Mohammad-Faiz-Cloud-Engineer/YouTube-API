@@ -81,7 +81,7 @@ app.use((err, _req, res, _next) => {
 // ── Start ─────────────────────────────────────────────────────────────────
 const server = app.listen(PORT, () => {
   console.log('╔══════════════════════════════════════════════════════╗');
-  console.log('║        Bloomee YouTube Server v1.0.0                ║');
+  console.log('║        OpenMusic YouTube Server v1.0.0              ║');
   console.log('╠══════════════════════════════════════════════════════╣');
   console.log(`║  Admin Panel:  http://localhost:${PORT}                `);
   console.log(`║  API Base:     http://localhost:${PORT}/api            `);
