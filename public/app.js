@@ -374,6 +374,13 @@ function clearConsole() {
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function copyText(text) {
   navigator.clipboard.writeText(text).then(() => {
     const el = document.createElement('div');

@@ -1,28 +1,6 @@
----
-title: OpenMusic YouTube Server
-emoji: 🎵
-colorFrom: red
-colorTo: gray
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # OpenMusic YouTube Server
 
 A YouTube video metadata and audio streaming API proxy. No API keys, no sign-up, no database. Just a JSON API, a built-in admin panel, and audio playback in the browser.
-
----
-
-## Deploy on HuggingFace Spaces
-
-1. Create a new Space → select **Docker** as the SDK
-2. Push this repository to the Space
-3. The app will be available at `https://<your-space>.hf.space`
-
-The admin panel is at the root URL. The API base is `/api`.
-
-> `yt-dlp` is installed automatically inside the Docker image — no manual setup needed.
 
 ---
 
@@ -33,9 +11,9 @@ npm install
 npm start
 ```
 
-Opens on `http://localhost:7860`. Hit `/api/health` to check.
+Opens on `http://localhost:3040`. Hit `/api/health` to check.
 
-> **Requires `yt-dlp`** to be installed and available on PATH.
+> **Requires `yt-dlp`** to be installed and available on PATH (or in one of the standard Windows install locations). Used for stream URL extraction.
 >
 > Install: `pip install yt-dlp` or download from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases).
 
@@ -59,7 +37,7 @@ Opens on `http://localhost:7860`. Hit `/api/health` to check.
 ### JavaScript (fetch)
 
 ```javascript
-const BASE = 'https://<your-space>.hf.space'; // or http://localhost:7860
+const BASE = 'http://localhost:3040';
 
 // Search videos
 const searchRes = await fetch(`${BASE}/api/search?q=never gonna give you up`);
@@ -93,7 +71,7 @@ console.log(sugData.suggestions);  // ['never gonna give you up', ...]
 ```python
 import requests
 
-BASE = 'https://<your-space>.hf.space'
+BASE = 'http://localhost:3040'
 
 search = requests.get(f'{BASE}/api/search', params={'q': 'never gonna give you up'}).json()
 print(search['results'][0]['title'])
@@ -108,7 +86,7 @@ print('Stream URL:', stream['stream_url'])
 ### cURL
 
 ```bash
-BASE=https://<your-space>.hf.space
+BASE=http://localhost:3040
 
 # Search
 curl "$BASE/api/search?q=never+gonna+give+you+up"
@@ -176,9 +154,6 @@ Every endpoint returns JSON.
 }
 ```
 
-> `quality` reflects the actual bitrate reported by yt-dlp (e.g. `128kbps` for m4a, `160kbps` for opus). `format` is the container (`m4a` or `webm`).
-```
-
 ### Stream URL
 
 ```json
@@ -187,7 +162,8 @@ Every endpoint returns JSON.
   "source": "youtube",
   "stream_url": "https://rr1---sn-xxx.googlevideo.com/videoplayback?...",
   "quality": "128kbps",
-  "format": "m4a",  "expires_at": null,
+  "format": "m4a",
+  "expires_at": null,
   "headers": {
     "User-Agent": "Mozilla/5.0 ...",
     "Referer": "https://www.youtube.com/"
@@ -227,7 +203,7 @@ Browser / App → Express → Scraper (ytdl-core + yt-dlp fallback) → Normaliz
 - Each request checks an in-memory cache first
 - On a miss, the scraper fetches from YouTube, normalizes the response, caches it, and returns JSON
 - `ytdl-core` is the primary source for video info; `yt-dlp` is the fallback if ytdl-core fails
-- Stream URLs are extracted via `yt-dlp --print` and cached separately from metadata
+- Stream URLs are extracted via `yt-dlp -g` and cached separately from metadata
 - `/api/video/:id/play` proxies the audio through the server to bypass CORS and Referer restrictions, with full byte-range support for seeking
 
 ### Cache TTLs
@@ -244,7 +220,7 @@ Stream URLs are also checked against their CDN expiry timestamp before being ser
 
 ## Built-in Admin Panel
 
-Open the root URL in a browser. There's a dark-themed single-page app with five tabs:
+Open `http://localhost:3040` in a browser. There's a dark-themed single-page app with five tabs:
 
 - **Dashboard** — server status, uptime, and live cache stats
 - **Search** — search YouTube and browse results with thumbnails
@@ -270,11 +246,11 @@ All vanilla JS, zero frameworks.
 
 | Layer | Tool |
 |---|---|
-| Runtime | Node.js 20 |
+| Runtime | Node.js >= 18 |
 | Web framework | Express 4 |
 | HTTP client | Axios |
 | Video info | @distube/ytdl-core |
-| Stream extraction | yt-dlp (installed in Docker image) |
+| Stream extraction | yt-dlp (external binary) |
 | Search | youtube-search-api |
 | Caching | node-cache (in-memory) |
 | Rate limiting | express-rate-limit |
@@ -287,9 +263,11 @@ All vanilla JS, zero frameworks.
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `7860` | Server port (matches HuggingFace `app_port`) |
-| `CORS_ORIGIN` | `*` | Allowed CORS origin. Set to your client URL in production |
-| `NODE_ENV` | `production` | Set automatically in Docker image |
+| `PORT` | `3040` | Server port |
+| `CORS_ORIGIN` | `*` | Allowed CORS origin. Set to your client URL in production (e.g. `https://app.example.com`) |
+| `NODE_ENV` | — | Set to `production` to switch morgan to combined log format |
+
+If `CORS_ORIGIN` is not set, the server logs a warning at startup and defaults to wildcard. Fine for a local or fully public API; not appropriate if you add authentication.
 
 ---
 

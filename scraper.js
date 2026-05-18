@@ -6,17 +6,17 @@ const ytdl = require('@distube/ytdl-core');
 const { normalizeSearch, normalizeVideo, normalizeStream } = require('./normalize');
 
 // ── yt-dlp discovery ──────────────────────────────────────────────────────
-// On Linux (Docker / HuggingFace Spaces) yt-dlp is installed to
-// /usr/local/bin/yt-dlp by the Dockerfile.  On Windows (local dev) it is
-// typically on PATH as yt-dlp or yt-dlp.exe.  We check the explicit Linux
-// path first so the binary is found even if PATH is minimal inside the
-// container, then fall back to PATH resolution for every other environment.
+// Checks a prioritized list of known install locations before falling back
+// to PATH resolution. Windows-specific paths are included for common Python
+// install locations.
 function findYtDlp() {
   const candidates = [
-    '/usr/local/bin/yt-dlp',          // Docker / Linux (installed by Dockerfile)
-    path.join(__dirname, 'bin', 'yt-dlp'), // local override (any platform)
-    'yt-dlp',                          // PATH resolution (Linux / macOS)
-    'yt-dlp.exe',                      // PATH resolution (Windows)
+    'yt-dlp',
+    'yt-dlp.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Python', 'pythoncore-3.14-64', 'Scripts', 'yt-dlp.exe'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python314', 'Scripts', 'yt-dlp.exe'),
+    path.join(process.env.APPDATA || '', 'yt-dlp', 'yt-dlp.exe'),
+    path.join(__dirname, 'bin', 'yt-dlp.exe'),
   ];
   for (const candidate of candidates) {
     try {
@@ -136,7 +136,6 @@ async function getVideoInfo(videoId) {
     } catch (ytdlpErr) {
       // Classify the error from the primary source (ytdl) for a clean message.
       // The yt-dlp fallback error is logged for diagnostics but not surfaced.
-      void ytdlpErr; // fallback error intentionally not surfaced to callers
       if (ytdlErr.message?.includes('Video unavailable') || ytdlErr.message?.includes('This video is unavailable')) {
         throw new Error('Video not found');
       }
@@ -154,25 +153,21 @@ async function getVideoInfo(videoId) {
 
 async function getStreamUrl(videoId) {
   try {
-    // Use --print to get both the URL and the format details in one call.
-    // Format selector: prefer m4a (128kbps, universally compatible) over webm/opus.
-    // YouTube's actual audio ceiling is ~160kbps opus — there is no 320kbps source.
     const output = await execYtDlp([
+      '-g',
+      '-f', 'bestaudio[ext=m4a]/bestaudio',
       '--no-warnings',
       '--no-playlist',
-      '-f', 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
-      '--print', '%(url)s\t%(abr)s\t%(ext)s',
       `https://www.youtube.com/watch?v=${videoId}`,
     ]);
-
-    const [url, abr, ext] = output.split('\n')[0].split('\t');
+    const url = output.split('\n')[0];
 
     if (!url || !url.startsWith('http')) {
       throw new Error('No playable audio format found');
     }
 
-    const quality = abr && abr !== 'NA' ? `${Math.round(Number(abr))}kbps` : 'unknown';
-    const format = ext && ext !== 'NA' ? ext : (url.includes('m4a') ? 'm4a' : 'webm');
+    const quality = url.includes('m4a') ? '128kbps' : 'unknown';
+    const format = url.includes('.m4a') || url.includes('m4a') ? 'm4a' : 'webm';
 
     return normalizeStream('youtube', videoId, url, format, quality, null, {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
