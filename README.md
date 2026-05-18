@@ -176,6 +176,9 @@ Every endpoint returns JSON.
 }
 ```
 
+> `quality` reflects the actual bitrate reported by yt-dlp (e.g. `128kbps` for m4a, `160kbps` for opus). `format` is the container (`m4a` or `webm`).
+```
+
 ### Stream URL
 
 ```json
@@ -184,8 +187,7 @@ Every endpoint returns JSON.
   "source": "youtube",
   "stream_url": "https://rr1---sn-xxx.googlevideo.com/videoplayback?...",
   "quality": "128kbps",
-  "format": "m4a",
-  "expires_at": null,
+  "format": "m4a",  "expires_at": null,
   "headers": {
     "User-Agent": "Mozilla/5.0 ...",
     "Referer": "https://www.youtube.com/"
@@ -225,7 +227,7 @@ Browser / App → Express → Scraper (ytdl-core + yt-dlp fallback) → Normaliz
 - Each request checks an in-memory cache first
 - On a miss, the scraper fetches from YouTube, normalizes the response, caches it, and returns JSON
 - `ytdl-core` is the primary source for video info; `yt-dlp` is the fallback if ytdl-core fails
-- Stream URLs are extracted via `yt-dlp -g` and cached separately from metadata
+- Stream URLs are extracted via `yt-dlp --print` and cached separately from metadata
 - `/api/video/:id/play` proxies the audio through the server to bypass CORS and Referer restrictions, with full byte-range support for seeking
 
 ### Cache TTLs

@@ -136,6 +136,7 @@ async function getVideoInfo(videoId) {
     } catch (ytdlpErr) {
       // Classify the error from the primary source (ytdl) for a clean message.
       // The yt-dlp fallback error is logged for diagnostics but not surfaced.
+      void ytdlpErr; // fallback error intentionally not surfaced to callers
       if (ytdlErr.message?.includes('Video unavailable') || ytdlErr.message?.includes('This video is unavailable')) {
         throw new Error('Video not found');
       }
@@ -154,8 +155,8 @@ async function getVideoInfo(videoId) {
 async function getStreamUrl(videoId) {
   try {
     // Use --print to get both the URL and the format details in one call.
-    // Format selector: prefer opus (160kbps, itag 251) over m4a (128kbps, itag 140).
-    // YouTube's actual ceiling is ~160kbps opus — there is no 320kbps source.
+    // Format selector: prefer m4a (128kbps, universally compatible) over webm/opus.
+    // YouTube's actual audio ceiling is ~160kbps opus — there is no 320kbps source.
     const output = await execYtDlp([
       '--no-warnings',
       '--no-playlist',
