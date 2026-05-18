@@ -1,0 +1,23 @@
+node_modules/
+*.log
+*.tmp
+*.pid
+.cache/
+coverage/
+.nyc_output/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.bak
+*.orig
+*.swp
+.env
+.env.*
+*.pem
+*.key
+*credentials*.json
+*adminsdk*.json
+
+# YouTube player cache scripts (generated at runtime by youtubei.js / ytdl-core)
+*-player-script.js

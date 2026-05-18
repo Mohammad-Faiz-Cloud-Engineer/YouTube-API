@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h1>Admin</h1>
+      <span class="badge">YouTube Server</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-tab="dashboard">
+        <span class="nav-icon">&#9679;</span> Dashboard
+      </li>
+      <li class="nav-item" data-tab="search">
+        <span class="nav-icon">&#128269;</span> Search
+      </li>
+      <li class="nav-item" data-tab="video">
+        <span class="nav-icon">&#9654;</span> Video Info
+      </li>
+      <li class="nav-item" data-tab="stream">
+        <span class="nav-icon">&#9835;</span> Stream Test
+      </li>
+      <li class="nav-item" data-tab="console">
+        <span class="nav-icon">&#128187;</span> API Console
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="server-status" id="serverStatus">
+        <span class="status-dot"></span> Checking...
+      </div>
+    </div>
+  </nav>
+
+  <main class="content">
+    <!-- Dashboard -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="page-header">
+        <h2>Dashboard</h2>
+        <p>Server overview and cache statistics</p>
+      </div>
+      <div class="stats-grid" id="dashboardStats">
+        <div class="stat-card">
+          <div class="stat-label">Server Status</div>
+          <div class="stat-value" id="statStatus">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value" id="statUptime">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Search Cache</div>
+          <div class="stat-value" id="statSearchCache">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Stream Cache</div>
+          <div class="stat-value" id="statStreamCache">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Metadata Cache</div>
+          <div class="stat-value" id="statMetadataCache">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">API Endpoints</div>
+          <div class="stat-value">6</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>API Endpoints</h3>
+        <table class="endpoint-table">
+          <thead>
+            <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/search?q=</code></td><td>Search YouTube videos</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/suggestions?q=</code></td><td>Get search suggestions</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/video/:id</code></td><td>Get video details + stream info</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/video/:id/stream</code></td><td>Get stream URL only</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/video/:id/play</code></td><td>Proxy audio stream</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/health</code></td><td>Health check</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <section id="tab-search" class="tab-content">
+      <div class="page-header">
+        <h2>Search YouTube</h2>
+        <p>Search for videos on YouTube</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search YouTube videos..." />
+        <button id="searchBtn" onclick="performSearch()">Search</button>
+      </div>
+      <div id="searchResults" class="results-grid"></div>
+    </section>
+
+    <!-- Video Info -->
+    <section id="tab-video" class="tab-content">
+      <div class="page-header">
+        <h2>Video Information</h2>
+        <p>Get detailed metadata for a YouTube video</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="videoInput" placeholder="Enter YouTube Video ID (e.g. dQw4w9WgXcQ)" />
+        <button onclick="getVideoInfo()">Get Info</button>
+      </div>
+      <div id="videoResult" class="result-card"></div>
+    </section>
+
+    <!-- Stream Test -->
+    <section id="tab-stream" class="tab-content">
+      <div class="page-header">
+        <h2>Stream Test</h2>
+        <p>Play YouTube audio directly in browser</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="streamInput" placeholder="Enter YouTube Video ID" />
+        <button onclick="playStream()">Play Audio</button>
+      </div>
+      <div id="streamPlayer" class="player-container" style="display:none;">
+        <div class="player-info" id="streamInfo"></div>
+        <audio id="audioPlayer" controls autoplay style="width:100%;"></audio>
+      </div>
+      <div id="streamResult"></div>
+    </section>
+
+    <!-- API Console -->
+    <section id="tab-console" class="tab-content">
+      <div class="page-header">
+        <h2>API Console</h2>
+        <p>Test API endpoints manually</p>
+      </div>
+      <div class="console-controls">
+        <select id="consoleMethod">
+          <option value="GET">GET</option>
+        </select>
+        <input type="text" id="consolePath" placeholder="e.g. search?q=never gonna give you up" />
+        <button onclick="executeConsole()">Send</button>
+        <button class="btn-secondary" onclick="clearConsole()">Clear</button>
+      </div>
+      <div class="console-response">
+        <h3>Response</h3>
+        <pre id="consoleOutput" class="response-pre"></pre>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
