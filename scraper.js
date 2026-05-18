@@ -153,21 +153,25 @@ async function getVideoInfo(videoId) {
 
 async function getStreamUrl(videoId) {
   try {
+    // Use --print to get both the URL and the format details in one call.
+    // Format selector: prefer opus (160kbps, itag 251) over m4a (128kbps, itag 140).
+    // YouTube's actual ceiling is ~160kbps opus — there is no 320kbps source.
     const output = await execYtDlp([
-      '-g',
-      '-f', 'bestaudio[ext=m4a]/bestaudio',
       '--no-warnings',
       '--no-playlist',
+      '-f', 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
+      '--print', '%(url)s\t%(abr)s\t%(ext)s',
       `https://www.youtube.com/watch?v=${videoId}`,
     ]);
-    const url = output.split('\n')[0];
+
+    const [url, abr, ext] = output.split('\n')[0].split('\t');
 
     if (!url || !url.startsWith('http')) {
       throw new Error('No playable audio format found');
     }
 
-    const quality = url.includes('m4a') ? '128kbps' : 'unknown';
-    const format = url.includes('.m4a') || url.includes('m4a') ? 'm4a' : 'webm';
+    const quality = abr && abr !== 'NA' ? `${Math.round(Number(abr))}kbps` : 'unknown';
+    const format = ext && ext !== 'NA' ? ext : (url.includes('m4a') ? 'm4a' : 'webm');
 
     return normalizeStream('youtube', videoId, url, format, quality, null, {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
